@@ -1,5 +1,11 @@
 import * as mongoose from 'mongoose';
 
+export enum MoveStatus {
+  SUCCEED = 'SUCCEED',
+  FAILED = 'FAILED',
+  FINISHED = 'FINISHED'
+}
+
 export const MoveSchema = new mongoose.Schema({
   piece: { type: String, required: true },
   notation: { type: String, required: true },
@@ -29,7 +35,7 @@ export interface LessonInfo {
   tutorId: string;
 }
 
-export type Lesson = Omit<LessonInfo, 'moves' | 'notationType' | 'disableDrag'>
+export type Lesson = Omit<LessonInfo, 'description' | 'moves' | 'notationType' | 'disableDrag'>
 
 export interface Move {
   piece: string;
@@ -40,10 +46,4 @@ export interface Move {
 export interface MoveStatusResponse {
   status: MoveStatus;
   nextMove?: Move;
-}
-
-export enum MoveStatus {
-  SUCCEED = 'SUCCEED',
-  FAILED = 'FAILED',
-  FINISHED = 'FINISHED'
 }

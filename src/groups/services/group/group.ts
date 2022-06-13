@@ -7,6 +7,7 @@ export interface IGroupService {
   findStudentGroups(studentId: string): Promise<ListGroup[]>;
   createGroup(group: Group): Promise<string>;
   updateGroup(id: string, group: Partial<Group>): Promise<ListGroup>;
+  removeGroup(id: string): Promise<void>;
   addLesson(id: string, lessonId: string): Promise<string>;
   removeLesson(id: string, lessonId: string): Promise<void>;
   addStudent(id: string, groupId: string): Promise<string>;

@@ -70,6 +70,12 @@ export class GroupService implements IGroupService {
     return this.normaliseListGroup(group);
   }
 
+  async removeGroup(id: string): Promise<void> {
+    await this.groupModel.deleteOne({ _id: id }).exec();
+    await this.groupLessonModel.deleteMany({ groupId: id }).exec();
+    await this.groupLessonModel.deleteMany({ groupId: id }).exec();
+  }
+
   async addLesson(groupId: string, lessonId: string): Promise<string> {
     const newGroupLesson = new this.groupLessonModel({ groupId, lessonId });
     const result = await newGroupLesson.save();

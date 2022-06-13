@@ -4,6 +4,7 @@ import { LessonController } from './controllers/lesson/lesson.controller';
 import { MongooseModule } from '@nestjs/mongoose';
 import { LessonSchema } from './lesson.model';
 import { GroupLessonSchema, GroupStudentSchema } from '../groups/group.model';
+import { LessonStatisticSchema } from '../statistics/statistics.model';
 
 @Module({
   imports: [
@@ -11,6 +12,7 @@ import { GroupLessonSchema, GroupStudentSchema } from '../groups/group.model';
       { name: 'Lesson', schema: LessonSchema },
       { name: 'GroupLesson', schema: GroupLessonSchema },
       { name: 'GroupStudent', schema: GroupStudentSchema },
+      { name: 'LessonStatistics', schema: LessonStatisticSchema }
     ])
   ],
   providers: [

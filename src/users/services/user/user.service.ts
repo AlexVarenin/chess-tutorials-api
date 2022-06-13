@@ -4,6 +4,7 @@ import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { Student, User, UserDB } from '../../user.model';
 import { Group, GroupStudent } from '../../../groups/group.model';
+import { LessonStatistics } from '../../../statistics/statistics.model';
 
 @Injectable()
 export class UserService implements IUserService {
@@ -11,6 +12,7 @@ export class UserService implements IUserService {
     @InjectModel('User') private readonly userModel: Model<UserDB>,
     @InjectModel('Group') private readonly groupModel: Model<Group>,
     @InjectModel('GroupStudent') private readonly groupStudentModel: Model<GroupStudent>,
+    @InjectModel('LessonStatistics') private readonly lessonStatisticsModel: Model<LessonStatistics>
   ) {
 
   }
@@ -43,6 +45,15 @@ export class UserService implements IUserService {
     const newUser = new this.userModel({ email, role, password, firstName, lastName, tutorId });
     const result = await newUser.save();
     return result.id;
+  }
+
+  async removeStudent(id: string): Promise<void> {
+    const user = await this.userModel.findById(id).exec();
+    if (user && user.role === 'student') {
+      await this.userModel.deleteOne({ _id: id }).exec();
+      await this.groupStudentModel.deleteMany({ studentId: id }).exec();
+      await this.lessonStatisticsModel.deleteMany({ studentId: id }).exec();
+    }
   }
 
   private normaliseApiUser(user: UserDB) {

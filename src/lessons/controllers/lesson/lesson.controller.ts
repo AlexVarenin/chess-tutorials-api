@@ -38,7 +38,6 @@ export class LessonController {
   @Delete(':id')
   async removeLesson(@Param('id') id: string) {
     await this.lessonService.removeLesson(id);
-    return null
   }
 
   @Patch(':id')
@@ -47,7 +46,13 @@ export class LessonController {
   }
 
   @Post(':id/check-move/:moveIndex')
-  async checkMove(@Param('id') id: string, @Param('moveIndex') moveIndex: number, @Body() move: Move) {
-    return await this.lessonService.checkMove(id, moveIndex, move);
+  async checkMove(
+    @Req() req,
+    @Param('id') id: string,
+    @Param('moveIndex') moveIndex: number,
+    @Body() move: Move
+  ) {
+    return await this.lessonService.checkMove(id, moveIndex, move, req.user.id);
   }
+
 }

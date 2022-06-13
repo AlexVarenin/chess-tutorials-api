@@ -6,5 +6,6 @@ export interface IUserService {
   findAll(): Promise<User[]>;
   findStudents(tutorId: string): Promise<Student[]>;
   createUser(user: UserDB): Promise<string>;
+  removeStudent(id: string): Promise<void>
 }
 

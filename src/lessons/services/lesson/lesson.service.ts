@@ -1,16 +1,24 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { Model, Document } from 'mongoose';
-import { Lesson, LessonInfo, Move, MoveStatus, MoveStatusResponse } from '../../lesson.model';
+import { Model, Document, HydratedDocument } from 'mongoose';
+import {
+  Lesson,
+  LessonInfo,
+  Move,
+  MoveStatus,
+  MoveStatusResponse,
+} from '../../lesson.model';
 import { ILessonService } from './lesson';
 import { GroupLesson, GroupStudent } from '../../../groups/group.model';
+import { LessonStatistics } from '../../../statistics/statistics.model';
 
 @Injectable()
 export class LessonService implements ILessonService {
   constructor(
     @InjectModel('Lesson') private readonly lessonModel: Model<LessonInfo>,
     @InjectModel('GroupStudent') private readonly groupStudentModel: Model<GroupStudent>,
-    @InjectModel('GroupLesson') private readonly groupLessonModel: Model<GroupLesson>
+    @InjectModel('GroupLesson') private readonly groupLessonModel: Model<GroupLesson>,
+    @InjectModel('LessonStatistics') private readonly lessonStatisticsModel: Model<LessonStatistics>
   ) {
 
   }
@@ -48,6 +56,8 @@ export class LessonService implements ILessonService {
 
   async removeLesson(id: string): Promise<void> {
     await this.lessonModel.deleteOne({ _id: id }).exec();
+    await this.groupLessonModel.deleteMany({ lessonId: id }).exec();
+    await this.lessonStatisticsModel.deleteMany({ lessonId: id }).exec();
   }
 
   async updateLesson(id: string, patch: Partial<LessonInfo>): Promise<LessonInfo> {
@@ -79,19 +89,32 @@ export class LessonService implements ILessonService {
     return this.normaliseLessonInfo(lesson);
   }
 
-  async checkMove(id: string, moveIndex: number, move: Move): Promise<MoveStatusResponse> {
+  async checkMove(id: string, moveIndex: number, move: Move, userId: string): Promise<MoveStatusResponse> {
     const { moves, disableDrag } = await this.lessonModel.findById(id);
+
     if (moveIndex >= moves.length) {
       return { status: MoveStatus.FINISHED };
     }
+
+    const lessonStatistics = await this.findLastRecord(id, userId);
+
     const currentMove = moves[moveIndex];
     if (currentMove.fen === move.fen && (!disableDrag || move.notation === currentMove.notation)) {
       const nextMove = moves[++moveIndex];
       if (nextMove) {
+
+        await this.updateProgress(lessonStatistics, moveIndex, moves);
+
         return { status: MoveStatus.SUCCEED, nextMove };
       }
+
+      await this.updateProgress(lessonStatistics, moveIndex, moves);
+
       return { status: MoveStatus.FINISHED };
     }
+
+    await this.updateFailures(lessonStatistics);
+
     return { status: MoveStatus.FAILED }
   }
 
@@ -101,7 +124,29 @@ export class LessonService implements ILessonService {
   }
 
   private normaliseLesson(lesson: LessonInfo) {
-    const { id, title, description, initialState, orientation, tutorId } = lesson;
-    return { id, title, description, initialState, orientation, tutorId };
+    const { id, title, initialState, orientation, tutorId } = lesson;
+    return { id, title, initialState, orientation, tutorId };
+  }
+
+  private async findLastRecord(lessonId: string, studentId: string) {
+    return (await this.lessonStatisticsModel
+        .find({ lessonId, studentId })
+        .sort({ createdAt: -1 })
+        .limit(1)
+    )[0];
+  }
+
+  private async updateProgress(record: HydratedDocument<LessonStatistics>, moveIndex: number, moves: Move[]) {
+    if (!!record) {
+      record.progress = Math.floor(moveIndex / moves.length * 100);
+      await (record as Document).save();
+    }
+  }
+
+  private async updateFailures(record: HydratedDocument<LessonStatistics>) {
+    if (!!record) {
+      record.failures = ++record.failures;
+      await (record as Document).save();
+    }
   }
 }

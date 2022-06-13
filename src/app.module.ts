@@ -6,6 +6,7 @@ import { UsersModule } from './users/users.module';
 import { AuthModule } from './auth/auth.module';
 import { LessonsModule } from './lessons/lessons.module';
 import { GroupsModule } from './groups/groups.module';
+import { StatisticsModule } from './statistics/statistics.module';
 
 
 @Module({
@@ -15,7 +16,8 @@ import { GroupsModule } from './groups/groups.module';
     UsersModule,
     AuthModule,
     LessonsModule,
-    GroupsModule
+    GroupsModule,
+    StatisticsModule
   ],
   controllers: [],
   providers: [],

@@ -8,5 +8,5 @@ export interface ILessonService {
   createLesson(lesson: LessonInfo): Promise<string>;
   removeLesson(id: string): Promise<void>;
   updateLesson(id: string, patch: Partial<LessonInfo>): Promise<LessonInfo>
-  checkMove(id: string, moveIndex: number, move: Move): Promise<MoveStatusResponse>
+  checkMove(id: string, moveIndex: number, move: Move, userId: string): Promise<MoveStatusResponse>
 }

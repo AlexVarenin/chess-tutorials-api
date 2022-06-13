@@ -40,6 +40,11 @@ export class GroupController {
     return await this.groupService.updateGroup(id, group);
   }
 
+  @Delete(':id')
+  async removeGroup(@Param('id') id: string) {
+    await this.groupService.removeGroup(id);
+  }
+
   @Post(':id/lesson')
   async addLesson(@Param('id') id: string, @Body() { lessonId }: { lessonId: string }) {
     const generatedId = await this.groupService.addLesson(id, lessonId);
